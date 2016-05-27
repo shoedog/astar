@@ -9,7 +9,9 @@
 #include <fstream>
 #include <stdio.h>
 #include <sstream>
+#include <utility>
 #include <string.h>
+
 
 using namespace std;
 
@@ -36,6 +38,10 @@ int main( int argc, char *argv[] )
 	int distance;
 	int totalDistance;
 	bool flag = 0;
+	pair<int, int> coordPair;
+	map<pair<int, int>, int> coordMap;
+	map<pair<int, int>, int> yCoordMap;
+
 
 	//Read file to struct in vector
 	if( argc != 2 )
@@ -67,6 +73,27 @@ int main( int argc, char *argv[] )
 
 	cout << "Total Distance: " << totalDistance;
  
+	//Store Coordinates in map as key, using std:pair TYPE,  with city as value
+	//Maps are sorted by default, with coordinated pairs they are sorted by xval, then yval by default.
+	for( a = 0; a < coords.size(); a++ ){ 
+		coordMap[make_pair( coords[a].xVal, coords[a].yVal )] = a;
+	}
+	//Out map Coordinates to test, using std:pair TYPE,  with city as value, map is sorted by coord pair by default
+	for( map<pair<int,int>, int>::iterator it = coordMap.begin(); it != coordMap.end(); ++it ){ 
+		cout << "City: " << it->second << " \t xval: " << get<0>(it->first) << "\tyval: " << get<1>(it->first) << "\n";
+	}
+	
+	//Store Coordinates in map as key, using std:pair TYPE,  with city as value
+	//Maps are sorted by default, with coordinated pairs they are sorted by y-val, then x-val.
+	for( a = 0; a < coords.size(); a++ ){ 
+		yCoordMap[make_pair( coords[a].yVal, coords[a].xVal )] = a;
+	}
+	//Out map Coordinates to test, using std:pair TYPE,  with city as value, map is sorted by coord pair by default
+	for( map<pair<int,int>, int>::iterator it = yCoordMap.begin(); it != yCoordMap.end(); ++it ){ 
+		cout << "City: " << it->second << " \t yval: " << get<0>(it->first) << "\t xval: " << get<1>(it->first) << "\n";
+	}
+	
+
 	//Write vector struct to output file
 	if( flag == 1 ){
 		filename.append(  ".tour" );
