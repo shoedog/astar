@@ -41,6 +41,7 @@ int main( int argc, char *argv[] )
 	pair<int, int> coordPair;
 	map<pair<int, int>, int> coordMap;
 	map<pair<int, int>, int> yCoordMap;
+	int counter = 0;
 
 
 	//Read file to struct in vector
@@ -77,7 +78,9 @@ int main( int argc, char *argv[] )
 	//Maps are sorted by default, with coordinated pairs they are sorted by xval, then yval by default.
 	for( a = 0; a < coords.size(); a++ ){ 
 		coordMap[make_pair( coords[a].xVal, coords[a].yVal )] = a;
+		counter++;
 	}
+	cout << "\n\n********************* Map Coords By X-Val***** \n";	
 	//Out map Coordinates to test, using std:pair TYPE,  with city as value, map is sorted by coord pair by default
 	for( map<pair<int,int>, int>::iterator it = coordMap.begin(); it != coordMap.end(); ++it ){ 
 		cout << "City: " << it->second << " \t xval: " << get<0>(it->first) << "\tyval: " << get<1>(it->first) << "\n";
@@ -88,11 +91,43 @@ int main( int argc, char *argv[] )
 	for( a = 0; a < coords.size(); a++ ){ 
 		yCoordMap[make_pair( coords[a].yVal, coords[a].xVal )] = a;
 	}
+	cout << "\n\n********************* Map Coords By Y-Val***** \n";	
 	//Out map Coordinates to test, using std:pair TYPE,  with city as value, map is sorted by coord pair by default
 	for( map<pair<int,int>, int>::iterator it = yCoordMap.begin(); it != yCoordMap.end(); ++it ){ 
 		cout << "City: " << it->second << " \t yval: " << get<0>(it->first) << "\t xval: " << get<1>(it->first) << "\n";
 	}
 	
+	//AdjacencyMatrix
+	//Doesn't work for large inputs like example 3
+	if( counter < 500 ){
+		int adjMatrix[counter][counter]; 
+		
+		for( a = 0; a < counter; a++ ){ 
+	
+			for( b = 0; b < counter; b++ ){ 
+				adjMatrix[a][b] = sqrt( pow((coords[a].xVal-coords[b].xVal), 2 ) + pow((coords[a].yVal-coords[b].yVal), 2) );
+			}
+		}
+
+		//Print AdjMatrix for testing
+		//
+		cout << "\n\n********************* Adjacency Matrix***** \n	";
+		cout << "   ";
+		
+		for( a = 0; a < counter; a++ ){ 
+				cout << " " << a;
+		}
+		cout << "\n";
+		
+		for( a = 0; a < counter; a++ ){ 
+			cout << a << ": ";
+			
+			for( b = 0; b < counter; b++ ){ 
+				cout << " " <<adjMatrix[a][b];
+			}
+			cout << "\n";
+		}
+	}
 
 	//Write vector struct to output file
 	if( flag == 1 ){
