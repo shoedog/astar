@@ -13,6 +13,7 @@
 #include <sstream>
 #include <utility>
 #include <string.h>
+#include <time.h>
 
 
 using namespace std;
@@ -32,6 +33,7 @@ void buildVisits( int start, vector<vector<int>> &adjMatrix, list<int> &Unvisite
 
 int main( int argc, char *argv[] )
 {
+	clock_t t;
 	ifstream inFile;
 	ofstream outFile;
 	string filename;
@@ -47,7 +49,8 @@ int main( int argc, char *argv[] )
 	map<pair<int, int>, int> yCoordMap;
 	int counter = 0;
 
-
+	t = clock();
+	
 	//Read file to struct in vector
 	if( argc != 2 )
 		cout << "usage: " << argv[0] << " <filename>\n";
@@ -168,6 +171,9 @@ int main( int argc, char *argv[] )
 		}
 		outFile.close();
 	}
+
+	t = clock() - t;
+	printf( "Seconds: %f", ((float)t)/CLOCKS_PER_SEC);
 
 	return 0;
 }
