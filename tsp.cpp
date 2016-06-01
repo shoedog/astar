@@ -259,7 +259,7 @@ void nearestNeighbor( int start, vector<vector<int>> &adjMatrix, list<int> &Unvi
 void simAnneal( vector<vector<int>> &adjMatrix, vector<int> &destCities, queue<int> &Visited ){
 
 	unsigned seed = chrono::system_clock::now().time_since_epoch().count();
-	double temp = 100000000000000;
+	double temp = 10000000000000;
 	double coolingRate = 0.99999;
 	vector<int> tour;
 	vector<int> newTour;
@@ -282,6 +282,10 @@ void simAnneal( vector<vector<int>> &adjMatrix, vector<int> &destCities, queue<i
 	
 	//Optimum for test-2 was found at 7697
 	// starting temp = 1000000000; coolingRate = .999999 while temp > .001 using results from Greedy search
+
+	//Optimum for test-4 was found at 19463
+	// starting temp = 10000000000000; coolingRate = .99999 while temp > .00001 using results from Greedy search
+	// and resetting if ratio between currentEnergy/bestDistance > 1.2 
 
 	//Use our nearest neighbor results to initialize the simulated annealing
 	int i = 0;
@@ -328,6 +332,10 @@ void simAnneal( vector<vector<int>> &adjMatrix, vector<int> &destCities, queue<i
 			destCities = tour;
 			bestDistance = currentEnergy;
 			//printf( "Current Distance: %d \n", bestDistance );
+		}
+
+		if( (currentEnergy / bestDistance) > 1.10 ){
+			tour = destCities;
 		}
 
 		//Cool system
