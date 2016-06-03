@@ -78,8 +78,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	//Set first tour with greedy run
 	int totalDistance = greedy(stops, lines, xarr, yarr);
 	int tempDistance;
+	
+	//Evaluate arguments, and choose 
  	if (optArg == 2) {
 		do {
 			start = clock();
