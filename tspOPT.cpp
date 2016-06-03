@@ -24,7 +24,6 @@ void results(int length, int vertices, int stops[], string cities[]);
 int getTourDistance( vector<vector<int>> &adjMatrix, vector<int> &tour ){
 	int distance=0;
 
-	//Sum distance from each city in tour to the next
 	for( int i=0; i < (tour.size()-1); i++ ){
 		distance += adjMatrix[tour[i]][tour[i+1]];
 	}
@@ -195,13 +194,11 @@ int opt2(int stops[], int vertices, int x[], int y[])
   int length = 0;
   int index, bestDistance, nextDistance;
   bool flag;
-  //at each point it considers switching, then stores the best solution until
+
   for (int i = 0; i < vertices - 1; i++) {
-    //setting best to current dist and point
     bestDistance = tourLength(x, y, stops, vertices);
     index = i;
     for (int j = i+1; j < vertices; j++) {
-      //getting tour distance
       swap(stops[i], stops[j]);
       nextDistance = tourLength(x, y, stops, vertices);
       swap(stops[i], stops[j]);
@@ -210,7 +207,6 @@ int opt2(int stops[], int vertices, int x[], int y[])
 	index = j;
       }
     }
-    //swapping if better tour
     if (index != i) {
       swap(stops[i], stops[index]);
       flag = true;
