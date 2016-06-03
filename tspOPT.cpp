@@ -5,6 +5,7 @@
 #include <fstream>
 #include <time.h>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 
@@ -20,10 +21,28 @@ int greedy(int stops[], int vertices, int x[], int y[]);
 int opt2(int stops[], int vertices, int x[], int y[]);
 int opt3(int stops[], int vertices, int x[], int y[]);
 void results(int length, int vertices, int stops[], string cities[]);
+int getTourDistance( vector<vector<int>> &adjMatrix, vector<int> &tour ){
+	int distance=0;
+
+	//Sum distance from each city in tour to the next
+	for( int i=0; i < (tour.size()-1); i++ ){
+		distance += adjMatrix[tour[i]][tour[i+1]];
+	}
+
+	distance += adjMatrix[tour[tour.size()-1]][tour[0]];
+	
+	return distance;
+}
 
 
 int main(int argc, char *argv[])
 {
+	int lines = lineCount(argv[1]);
+	
+	int xDiff, yDiff, xSqrd, ySqrd, xySum, xyDist;
+	vector< vector<int> > adjMatrix;
+	adjMatrix.resize( lines, vector<int>(lines, 0));
+	
 	int lines = lineCount(argv[1]);
 	double runTime = 0.0; 
     clock_t start, stop;
@@ -37,6 +56,28 @@ int main(int argc, char *argv[])
   	for (int i = 0; i < lines; i++) stops[i] = -1;
 	setCoordinates(cities, lines, xarr, yarr);
 
+	//Store distance in Adjacency Matrix so that Distances between cities
+	// only need to be calculated the one time and then can be accessed by
+	// adjMatrix[city1][city2] for all cities. Should save time for larger data sets
+	// since there are a lot of calls to tourDistance() in loops, so the same distance is calculated
+	// multiple times like nested loops in tourLength that call tourdistance in 2-OPT & 3-OPT. Then 
+	// tourLength can just sum the distances that are stored in the matrix. See getTourDistance() function
+	// above for an example. adjMatrix and a Vector holding the order of cities visited in order is looped
+	// over to sum the total distance. 
+	// Need to refactor code calls to tourDistance() in order to use and use city/stop number in adjMatrix 
+	// For example in greedy() it would be nextDistance = adjMatrix[current][j];
+	for( int i = 0; i < lines; i++ ){ 
+		Unvisited.push_back(a);			
+		for( int j = 0; j < lines; j++ ){
+			xDiff = xarr[i] - xarr[j];
+			yDiff = yarr[i] - yarr[j];
+			xSqrd = xDiff*xDiff;
+			ySqrd = yDiff*yDiff;
+			xySum = xSqrd + ySqrd;
+			xyDist = round(sqrt(xySum));
+			adjMatrix[i][j] = xyDist;
+		}
+	}
 
 	int totalDistance = greedy(stops, lines, xarr, yarr);
 	int tempDistance;
