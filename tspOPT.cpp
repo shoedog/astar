@@ -6,6 +6,7 @@
 #include <time.h>
 #include <ctime>
 #include <vector>
+#include <list>
 
 using namespace std;
 
@@ -16,10 +17,10 @@ bool arrayCheck(int arr[], int test, int length);
 int lineCount(char *infileName);
 int setCoordinates(string cities[], int lines, int x[], int y[]);
 int tourDistance(float x1, float y1, float x2, float y2);
-int tourLength(int stops[], int vertices, int x[], int y[]);
-int greedy(int stops[], int vertices, int x[], int y[]);
-int opt2(int stops[], int vertices, int x[], int y[]);
-int opt3(int stops[], int vertices, int x[], int y[]);
+int tourLength(int stops[], int vertices, int x[], int y[], vector<vector<int>> &adjMatrix);
+int greedy(int stops[], int vertices, int x[], int y[], vector<vector<int>> &adjMatrix, list<int> &Unvisited, int iterate);
+int opt2(int stops[], int vertices, int x[], int y[], vector<vector<int>> &adjMatrix);
+int opt3(int stops[], int vertices, int x[], int y[], vector<vector<int>> &adjMatrix);
 void results(int length, int vertices, int stops[], string cities[]);
 int getTourDistance( vector<vector<int>> &adjMatrix, vector<int> &tour ){
 	int distance=0;
@@ -36,15 +37,15 @@ int getTourDistance( vector<vector<int>> &adjMatrix, vector<int> &tour ){
 
 int main(int argc, char *argv[])
 {
+	double runTime = 0.0; 
+    clock_t start, stop, mid;
+
 	int lines = lineCount(argv[1]);
 	
 	int xDiff, yDiff, xSqrd, ySqrd, xySum, xyDist;
 	vector< vector<int> > adjMatrix;
 	adjMatrix.resize( lines, vector<int>(lines, 0));
 	
-	int lines = lineCount(argv[1]);
-	double runTime = 0.0; 
-    clock_t start, stop;
 	int optArg = 1;
 	start = clock();
 	if (argc > 2) optArg = atoi(argv[2]);
@@ -52,7 +53,9 @@ int main(int argc, char *argv[])
 	int xarr[lines];
 	int yarr[lines];
 	int stops[lines];
+	list<int> Unvisited;
   	for (int i = 0; i < lines; i++) stops[i] = -1;
+
 	setCoordinates(cities, lines, xarr, yarr);
 
 	//Store distance in Adjacency Matrix so that Distances between cities
@@ -65,8 +68,9 @@ int main(int argc, char *argv[])
 	// over to sum the total distance. 
 	// Need to refactor code calls to tourDistance() in order to use and use city/stop number in adjMatrix 
 	// For example in greedy() it would be nextDistance = adjMatrix[current][j];
+			start = clock();
 	for( int i = 0; i < lines; i++ ){ 
-		Unvisited.push_back(a);			
+		Unvisited.push_back(i);
 		for( int j = 0; j < lines; j++ ){
 			xDiff = xarr[i] - xarr[j];
 			yDiff = yarr[i] - yarr[j];
@@ -78,8 +82,27 @@ int main(int argc, char *argv[])
 		}
 	}
 
+//Testing that adjMatrix correctly gets distance
+/* 
+	for( int i=0; i<lines; i++ ){
+		printf( "xarr: %d\n", xarr[i] );
+		printf( "yarr: %\nd", yarr[i] );
+		
+		for( int j=0; j<lines; j++ ){	
+	//printf( "adjMatrix: %d\n", adjMatrix[i][j] );
+	int testDist =  tourDistance( xarr[i], yarr[i], xarr[j], yarr[j]);
+	//printf( "testDistance: %d\n", testDist );
+	if( testDist != adjMatrix[i][j] ){
+		printf( "\n\n*********************ERROR*******************\n ~AT x: %d, y: %d", i, j );
+	} 
+}}
+*/
+
 	//Set first tour with greedy run
-	int totalDistance = greedy(stops, lines, xarr, yarr);
+			start = clock();
+	int totalDistance;
+		totalDistance = greedy(stops, lines, xarr, yarr, adjMatrix, Unvisited, 0);
+	  runTime = ((double)(mid - start) / CLOCKS_PER_SEC);
 	int tempDistance;
 	
 	//Evaluate arguments, and choose 
@@ -87,13 +110,13 @@ int main(int argc, char *argv[])
 		do {
 			start = clock();
 			tempDistance = totalDistance;
-			totalDistance = opt2(stops, lines, xarr, yarr);
+			totalDistance = opt2(stops, lines, xarr, yarr, adjMatrix);
 		} while (tempDistance != totalDistance);
 	} else if (optArg == 3) {
 		do {
 			start = clock();
 			tempDistance = totalDistance;
-			totalDistance = opt3(stops, lines, xarr, yarr);
+			totalDistance = opt3(stops, lines, xarr, yarr, adjMatrix);
 		} while (tempDistance != totalDistance);
 	} 
 	
@@ -149,90 +172,130 @@ int tourDistance(float x1, float y1, float x2, float y2) {
   return (int) (sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2)) + .5);
 }
 
-int tourLength(int x[], int y[], int stops[], int vertices) {
-  int length = 0;
+int tourLength(int x[], int y[], int stops[], int vertices, vector<vector<int>> &adjMatrix ) {
+  //int length = 0;
+  int length1 = 0;
 
   for (int i = 0; i < vertices - 1; i++) {
-    length += tourDistance(x[stops[i]], y[stops[i]], x[stops[i+1]], y[stops[i+1]]);
+	length1 += adjMatrix[stops[i]][stops[i+1]]; 
+    //length += tourDistance(x[stops[i]], y[stops[i]], x[stops[i+1]], y[stops[i+1]]);
   }
-  length += tourDistance(x[stops[vertices - 1]], y[stops[vertices - 1]], x[stops[0]], y[stops[0]]);
+  //length += tourDistance(x[stops[vertices - 1]], y[stops[vertices - 1]], x[stops[0]], y[stops[0]]);
+  length1 += adjMatrix[stops[vertices-1]][stops[0]];
+	
+	//For testing 
+	/*
+	printf( "length: %d, length1: %d\n", length, length1);
+	if( length != length1 ){
+		printf( "\n***********ERROR Length*******\n" );
+	} */
 
-  return length;
+  return length1;
 }
 
 /*Greedy -- To initialize for OPT*/
 
-int greedy(int stops[], int points, int x[], int y[])
+int greedy(int stops[], int points, int x[], int y[], vector<vector<int>> &adjMatrix, list<int> &Unvisited, int iterate )
 {
   int length = 0;
   int bestPoint = 0; 
   int current, bestDistance, nextDistance;
   bool firstDistance;
+  int i=0;
+  stops[0] = iterate;
+  current = iterate;
+  Unvisited.remove(iterate);
 
-  for (int i = 0; i < points; i++) {
-    current = bestPoint;
-    stops[i] = current;
-    firstDistance = true;
-    bestDistance = 0;
-    for (int j = 0; j < points; j++) {
-      if (arrayCheck(stops, j, points)) continue;
-      nextDistance = tourDistance(x[current], y[current], x[j], y[j]);
-      if (nextDistance < bestDistance || firstDistance) {
-	bestDistance = nextDistance;
-	bestPoint = j;
-	firstDistance = false;
-      }
-    }
-      length += bestDistance;
+    bestDistance = 99999999;
+	while( !Unvisited.empty() ){
+		for (list<int>::iterator it=Unvisited.begin(); it != Unvisited.end(); ++it) {
+			if( (adjMatrix[stops[i]][*it] < bestDistance) && (adjMatrix[stops[i]][*it] > 0 )){
+				bestDistance = adjMatrix[stops[i]][*it];
+				bestPoint = *it;
+				printf( "Stops: %d, bestPoint: %d\n", stops[i], bestDistance ); 
+		
+			}
+     /* 
+		if (arrayCheck(stops, j, points)) continue;
+			nextDistance = adjMatrix[current][j];
+			if (nextDistance < bestDistance || firstDistance) {
+				bestDistance = nextDistance;
+				bestPoint = j;
+				firstDistance = false;
+			}*/
+		
+		}
+		i++;
+		Unvisited.remove(bestPoint);
+		current = bestPoint;
+		stops[i] = current;
+		length += bestDistance;
+		bestDistance = 99999999;
+		printf( "%d\n", i);
   }
+		printf( "2\n");
 
-  length += tourDistance(x[stops[points - 1]], y[stops[points - 1]], x[stops[0]], y[stops[0]]);
-//  cout << "Greedy tour length: " << length << endl;
+  length += adjMatrix[stops[points-1]][stops[0]];
+	//tourDistance(x[stops[points - 1]], y[stops[points - 1]], x[stops[0]], y[stops[0]]);
+	//  cout << "Greedy tour length: " << length << endl;
   return length;
 }
 
 /*2-OPT*/
-int opt2(int stops[], int vertices, int x[], int y[])
+int opt2(int stops[], int vertices, int x[], int y[], vector<vector<int>> &adjMatrix )
 {
   int length = 0;
   int index, bestDistance, nextDistance;
   bool flag;
+  int bestDistTemp;
+  int tempStop;
 
   for (int i = 0; i < vertices - 1; i++) {
-    bestDistance = tourLength(x, y, stops, vertices);
+    bestDistance = tourLength(x, y, stops, vertices, adjMatrix);
     index = i;
+
     for (int j = i+1; j < vertices; j++) {
-      swap(stops[i], stops[j]);
-      nextDistance = tourLength(x, y, stops, vertices);
-      swap(stops[i], stops[j]);
+      //swap(stops[i], stops[j]);
+	  tempStop = stops[i];
+	  stops[i] = stops[j];
+	  stops[j] = tempStop;
+      nextDistance = tourLength(x, y, stops, vertices, adjMatrix);
+      //swap(stops[i], stops[j]);
+	  tempStop = stops[i];
+	  stops[i] = stops[j];
+	  stops[j] = tempStop;
+
       if (nextDistance < bestDistance) {
-  	bestDistance = nextDistance;
-	index = j;
+	  	bestDistance = nextDistance;
+		index = j;
       }
     }
     if (index != i) {
-      swap(stops[i], stops[index]);
+      //swap(stops[i], stops[index]);
+	  tempStop = stops[i];
+	  stops[i] = stops[index];
+	  stops[index] = tempStop;
       flag = true;
     }
   }
-  length = tourLength(x, y, stops, vertices);
+  length = tourLength(x, y, stops, vertices, adjMatrix);
   cout << "2-OPT length: " << length << endl;
   return length;
 }
 
 /*3-OPT Algorithm*/
-int opt3(int stops[], int vertices, int x[], int y[])
+int opt3(int stops[], int vertices, int x[], int y[], vector<vector<int>> &adjMatrix )
 {
   int length = 0, index1, index2, bestDistance, nextDistance;
   bool isChange; 
   
   for (int i = 0; i < vertices - 1; i++) {
-    bestDistance = tourLength(x, y, stops, vertices);
+    bestDistance = tourLength(x, y, stops, vertices, adjMatrix);
     index1 = i;
     index2 = i;
     for (int j = i+1; j < vertices; j++) {
       swap(stops[i], stops[j]);
-      nextDistance = tourLength(x, y, stops, vertices);
+      nextDistance = tourLength(x, y, stops, vertices, adjMatrix);
       swap(stops[i], stops[j]);
       if (nextDistance < bestDistance) {
   	bestDistance = nextDistance;
@@ -242,7 +305,7 @@ int opt3(int stops[], int vertices, int x[], int y[])
       for (int k = j+1; k < vertices; k++) {
       swap(stops[i], stops[j]); 
       swap(stops[j], stops[k]); 
-      nextDistance = tourLength(x, y, stops, vertices);
+      nextDistance = tourLength(x, y, stops, vertices, adjMatrix);
       swap(stops[j], stops[k]);
       swap(stops[i], stops[j]);
       if (nextDistance < bestDistance) {
@@ -252,7 +315,7 @@ int opt3(int stops[], int vertices, int x[], int y[])
       }
       swap(stops[i], stops[k]); 
       swap(stops[j], stops[k]);
-      nextDistance = tourLength(x, y, stops, vertices);
+      nextDistance = tourLength(x, y, stops, vertices, adjMatrix);
       swap(stops[j], stops[k]);
       swap(stops[i], stops[k]);
       if (nextDistance < bestDistance) {
@@ -273,7 +336,7 @@ int opt3(int stops[], int vertices, int x[], int y[])
       isChange = true;
     }
   }
-  length = tourLength(x, y, stops, vertices);
+  length = tourLength(x, y, stops, vertices, adjMatrix);
   cout << "3-OPT length: " << length << endl;
   return length;
 }
