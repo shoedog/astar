@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 	setCoordinates(cities, lines, xarr, yarr);
 
 
+	int runs = 0;
 	int totalDistance = greedy(stops, lines, xarr, yarr);
 	int tempDistance;
  	if (optArg == 2) {
@@ -45,13 +46,14 @@ int main(int argc, char *argv[])
 			start = clock();
 			tempDistance = totalDistance;
 			totalDistance = opt2(stops, lines, xarr, yarr);
-		} while (tempDistance != totalDistance);
+			runs++;
+		} while (runs<6 );
 	} else if (optArg == 3) {
 		do {
 			start = clock();
 			tempDistance = totalDistance;
 			totalDistance = opt3(stops, lines, xarr, yarr);
-		} while (tempDistance != totalDistance);
+		} while (runs<6);
 	} 
 	
 	stop = clock();
